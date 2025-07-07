@@ -1,26 +1,26 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, Cookie, Shield, CheckCircle, XCircle, AlertCircle, MoreHorizontal, Users } from 'lucide-react'
+import {
+    Plus,
+    Pencil,
+    Trash2,
+    Cookie,
+    Shield,
+    CheckCircle,
+    XCircle,
+    AlertCircle,
+    MoreHorizontal,
+    Users,
+    ChevronRight,
+} from 'lucide-react'
 import type { AccountResponse } from '../api/types'
 import { accountsApi } from '../api/client'
 import { AccountModal } from '../components/AccountModal'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -31,6 +31,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export function Accounts() {
     const [accounts, setAccounts] = useState<AccountResponse[]>([])
@@ -39,6 +41,8 @@ export function Accounts() {
     const [editingAccount, setEditingAccount] = useState<AccountResponse | null>(null)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [accountToDelete, setAccountToDelete] = useState<string | null>(null)
+    const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+    const isMobile = useIsMobile()
 
     const loadAccounts = async () => {
         try {
@@ -85,6 +89,18 @@ export function Accounts() {
         loadAccounts()
     }
 
+    const toggleCardExpansion = (uuid: string) => {
+        setExpandedCards(prev => {
+            const next = new Set(prev)
+            if (next.has(uuid)) {
+                next.delete(uuid)
+            } else {
+                next.add(uuid)
+            }
+            return next
+        })
+    }
+
     const getAuthTypeIcon = (authType: string) => {
         return authType === 'both' ? <Shield className='h-4 w-4' /> : <Cookie className='h-4 w-4' />
     }
@@ -128,64 +144,235 @@ export function Accounts() {
         }
     }
 
+    const AccountTypeBadge = ({ account }: { account: AccountResponse }) => {
+        if (account.is_max) {
+            return (
+                <Badge variant='default' className='bg-gradient-to-r from-purple-500 to-pink-500'>
+                    Max
+                </Badge>
+            )
+        } else if (account.is_pro) {
+            return (
+                <Badge variant='secondary' className='bg-gradient-to-r from-blue-500 to-purple-500 text-white'>
+                    Pro
+                </Badge>
+            )
+        } else {
+            return <Badge variant='outline'>Free</Badge>
+        }
+    }
+
+    const MobileAccountCard = ({ account }: { account: AccountResponse }) => {
+        const isExpanded = expandedCards.has(account.organization_uuid)
+
+        return (
+            <Card className='mb-4'>
+                <Collapsible open={isExpanded} onOpenChange={() => toggleCardExpansion(account.organization_uuid)}>
+                    <CollapsibleTrigger asChild>
+                        <CardHeader className='cursor-pointer'>
+                            <div className='flex items-start justify-between'>
+                                <div className='flex-1 space-y-2'>
+                                    <div className='flex items-center gap-2'>
+                                        <AccountTypeBadge account={account} />
+                                        <div className='flex items-center gap-1'>
+                                            {getStatusIcon(account.status)}
+                                            <span className='text-sm'>{getStatusName(account.status)}</span>
+                                        </div>
+                                    </div>
+                                    <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                                        {getAuthTypeIcon(account.auth_type)}
+                                        <span>{getAuthTypeName(account.auth_type)}</span>
+                                    </div>
+                                    <p className='font-mono text-xs text-muted-foreground truncate'>
+                                        {account.organization_uuid}
+                                    </p>
+                                </div>
+                                <ChevronRight
+                                    className={`h-5 w-5 text-muted-foreground transition-transform ${
+                                        isExpanded ? 'rotate-90' : ''
+                                    }`}
+                                />
+                            </div>
+                        </CardHeader>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        <CardContent className='pt-0 space-y-3'>
+                            <div className='space-y-2 text-sm'>
+                                <div className='flex justify-between'>
+                                    <span className='text-muted-foreground'>最后使用</span>
+                                    <span>{new Date(account.last_used).toLocaleString('zh-CN')}</span>
+                                </div>
+                                <div className='flex justify-between'>
+                                    <span className='text-muted-foreground'>重置时间</span>
+                                    <span>{account.resets_at ? new Date(account.resets_at).toLocaleString('zh-CN') : '-'}</span>
+                                </div>
+                            </div>
+                            <div className='flex gap-2 pt-2'>
+                                <Button size='sm' variant='outline' className='flex-1' onClick={() => handleEdit(account)}>
+                                    <Pencil className='mr-2 h-4 w-4' />
+                                    编辑
+                                </Button>
+                                <Button
+                                    size='sm'
+                                    variant='outline'
+                                    className='flex-1 text-destructive hover:bg-destructive hover:text-destructive-foreground'
+                                    onClick={() => {
+                                        setAccountToDelete(account.organization_uuid)
+                                        setDeleteDialogOpen(true)
+                                    }}
+                                >
+                                    <Trash2 className='mr-2 h-4 w-4' />
+                                    删除
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </CollapsibleContent>
+                </Collapsible>
+            </Card>
+        )
+    }
+
+    if (isMobile === undefined) {
+        return null
+    }
+
     if (loading) {
         return (
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                        <Skeleton className="h-8 w-48" />
-                        <Skeleton className="h-4 w-96" />
+            <div className='space-y-6'>
+                <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+                    <div className='space-y-2'>
+                        <Skeleton className='h-8 w-32 sm:w-48' />
+                        <Skeleton className='h-4 w-64 sm:w-96 max-w-full' />
                     </div>
-                    <Skeleton className="h-10 w-32" />
+                    <Skeleton className='h-10 w-full sm:w-32' />
                 </div>
-                
-                <Card>
-                    <CardContent className="p-0">
-                        <div className="space-y-3 p-4">
-                            {[...Array(5)].map((_, i) => (
-                                <div key={i} className="flex items-center space-x-4">
-                                    <Skeleton className="h-12 w-12 rounded-full" />
-                                    <div className="flex-1 space-y-2">
-                                        <Skeleton className="h-4 w-full" />
-                                        <Skeleton className="h-4 w-3/4" />
+
+                {!isMobile ? (
+                    <Card>
+                        <CardContent className='p-0'>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>
+                                            <Skeleton className='h-4 w-32' />
+                                        </TableHead>
+                                        <TableHead>
+                                            <Skeleton className='h-4 w-24' />
+                                        </TableHead>
+                                        <TableHead>
+                                            <Skeleton className='h-4 w-16' />
+                                        </TableHead>
+                                        <TableHead>
+                                            <Skeleton className='h-4 w-24' />
+                                        </TableHead>
+                                        <TableHead>
+                                            <Skeleton className='h-4 w-32' />
+                                        </TableHead>
+                                        <TableHead>
+                                            <Skeleton className='h-4 w-32' />
+                                        </TableHead>
+                                        <TableHead className='text-right'>
+                                            <Skeleton className='h-4 w-16 ml-auto' />
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {[...Array(5)].map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell>
+                                                <Skeleton className='h-4 w-64' />
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className='flex items-center gap-2'>
+                                                    <Skeleton className='h-4 w-4 rounded' />
+                                                    <Skeleton className='h-4 w-16' />
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className='flex items-center gap-2'>
+                                                    <Skeleton className='h-4 w-4 rounded-full' />
+                                                    <Skeleton className='h-4 w-12' />
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Skeleton className='h-6 w-16 rounded-full' />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Skeleton className='h-4 w-32' />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Skeleton className='h-4 w-32' />
+                                            </TableCell>
+                                            <TableCell className='text-right'>
+                                                <Skeleton className='h-8 w-8 rounded ml-auto' />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className='space-y-4'>
+                        {[...Array(3)].map((_, i) => (
+                            <Card key={i} className='overflow-hidden'>
+                                <CardHeader className='pb-3'>
+                                    <div className='flex items-start justify-between'>
+                                        <div className='flex-1 space-y-3'>
+                                            <div className='flex items-center gap-2'>
+                                                <Skeleton className='h-5 w-12 rounded-full' />
+                                                <div className='flex items-center gap-1'>
+                                                    <Skeleton className='h-4 w-4 rounded-full' />
+                                                    <Skeleton className='h-4 w-12' />
+                                                </div>
+                                            </div>
+                                            <div className='flex items-center gap-2'>
+                                                <Skeleton className='h-4 w-4 rounded' />
+                                                <Skeleton className='h-4 w-24' />
+                                            </div>
+                                            <Skeleton className='h-3 w-full max-w-[280px]' />
+                                        </div>
+                                        <Skeleton className='h-5 w-5 rounded' />
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                                </CardHeader>
+                            </Card>
+                        ))}
+                    </div>
+                )}
             </div>
         )
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <div className='space-y-6'>
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">账户管理</h1>
-                    <p className="text-muted-foreground">管理 Claude 账户，支持 Cookie 和 OAuth 认证方式</p>
+                    <h1 className='text-3xl font-bold tracking-tight'>账户管理</h1>
+                    <p className='text-muted-foreground'>管理 Claude 账户，支持 Cookie 和 OAuth 认证方式</p>
                 </div>
-                <Button onClick={handleAdd}>
-                    <Plus className="mr-2 h-4 w-4" />
+                <Button onClick={handleAdd} className='w-full sm:w-auto'>
+                    <Plus className='mr-2 h-4 w-4' />
                     添加 Cookie
                 </Button>
             </div>
 
-            <Card>
-                <CardContent className="p-0">
-                    {accounts.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12">
-                            <div className="rounded-full bg-muted p-6 mb-4">
-                                <Users className="h-12 w-12 text-muted-foreground" />
-                            </div>
-                            <h3 className="text-lg font-semibold mb-2">暂无账户</h3>
-                            <p className="text-muted-foreground mb-4">点击"添加 Cookie"创建第一个账户</p>
-                            <Button onClick={handleAdd}>
-                                <Plus className="mr-2 h-4 w-4" />
-                                添加账户
-                            </Button>
+            {accounts.length === 0 ? (
+                <Card>
+                    <CardContent className='flex flex-col items-center justify-center py-12'>
+                        <div className='rounded-full bg-muted p-6 mb-4'>
+                            <Users className='h-12 w-12 text-muted-foreground' />
                         </div>
-                    ) : (
+                        <h3 className='text-lg font-semibold mb-2'>暂无账户</h3>
+                        <p className='text-muted-foreground mb-4 text-center'>点击"添加 Cookie"创建第一个账户</p>
+                        <Button onClick={handleAdd}>
+                            <Plus className='mr-2 h-4 w-4' />
+                            添加账户
+                        </Button>
+                    </CardContent>
+                </Card>
+            ) : !isMobile ? (
+                <Card>
+                    <CardContent className='p-0 overflow-x-auto'>
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -195,69 +382,55 @@ export function Accounts() {
                                     <TableHead>账户类型</TableHead>
                                     <TableHead>最后使用</TableHead>
                                     <TableHead>重置时间</TableHead>
-                                    <TableHead className="text-right">操作</TableHead>
+                                    <TableHead className='text-right'>操作</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {accounts.map(account => (
                                     <TableRow key={account.organization_uuid}>
-                                        <TableCell className="font-mono text-sm">
-                                            {account.organization_uuid}
-                                        </TableCell>
+                                        <TableCell className='font-mono text-sm'>{account.organization_uuid}</TableCell>
                                         <TableCell>
-                                            <div className="flex items-center gap-2">
+                                            <div className='flex items-center gap-2'>
                                                 {getAuthTypeIcon(account.auth_type)}
                                                 <span>{getAuthTypeName(account.auth_type)}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex items-center gap-2">
+                                            <div className='flex items-center gap-2'>
                                                 {getStatusIcon(account.status)}
                                                 <span>{getStatusName(account.status)}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            {account.is_max ? (
-                                                <Badge variant="default" className="bg-gradient-to-r from-purple-500 to-pink-500">
-                                                    Max
-                                                </Badge>
-                                            ) : account.is_pro ? (
-                                                <Badge variant="secondary" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                                                    Pro
-                                                </Badge>
-                                            ) : (
-                                                <Badge variant="outline">Free</Badge>
-                                            )}
+                                            <AccountTypeBadge account={account} />
                                         </TableCell>
-                                        <TableCell className="text-sm">
+                                        <TableCell className='text-sm'>
                                             {new Date(account.last_used).toLocaleString('zh-CN')}
                                         </TableCell>
-                                        <TableCell className="text-sm">
-                                            {account.resets_at
-                                                ? new Date(account.resets_at).toLocaleString('zh-CN')
-                                                : '-'}
+                                        <TableCell className='text-sm'>
+                                            {account.resets_at ? new Date(account.resets_at).toLocaleString('zh-CN') : '-'}
                                         </TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className='text-right'>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                        <span className="sr-only">打开菜单</span>
-                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    <Button variant='ghost' size='sm' className='h-8 w-8 p-0'>
+                                                        <span className='sr-only'>打开菜单</span>
+                                                        <MoreHorizontal className='h-4 w-4' />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
+                                                <DropdownMenuContent align='end'>
                                                     <DropdownMenuItem onClick={() => handleEdit(account)}>
-                                                        <Pencil className="mr-2 h-4 w-4" />
+                                                        <Pencil className='mr-2 h-4 w-4' />
                                                         编辑
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem 
+                                                    <DropdownMenuItem
                                                         onClick={() => {
                                                             setAccountToDelete(account.organization_uuid)
                                                             setDeleteDialogOpen(true)
                                                         }}
-                                                        className="text-destructive"
+                                                        className='text-destructive'
                                                     >
-                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        <Trash2 className='mr-2 h-4 w-4' />
                                                         删除
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
@@ -267,21 +440,28 @@ export function Accounts() {
                                 ))}
                             </TableBody>
                         </Table>
-                    )}
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            ) : (
+                <div>
+                    {accounts.map(account => (
+                        <MobileAccountCard key={account.organization_uuid} account={account} />
+                    ))}
+                </div>
+            )}
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>确定要删除这个账户吗？</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            此操作无法撤销。删除后将永久移除该账户的所有数据。
-                        </AlertDialogDescription>
+                        <AlertDialogDescription>此操作无法撤销。删除后将永久移除该账户的所有数据。</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                        >
                             删除
                         </AlertDialogAction>
                     </AlertDialogFooter>

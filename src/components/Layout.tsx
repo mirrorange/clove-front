@@ -13,7 +13,6 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { Button } from '@/components/ui/button'
 
 export function Layout() {
     const location = useLocation()

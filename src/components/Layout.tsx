@@ -1,6 +1,19 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Settings, Users, Home, LogOut } from 'lucide-react'
-import './Layout.css'
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarProvider,
+    SidebarTrigger,
+} from '@/components/ui/sidebar'
+import { Button } from '@/components/ui/button'
 
 export function Layout() {
     const location = useLocation()
@@ -17,53 +30,70 @@ export function Layout() {
     }
 
     return (
-        <div className='layout-container'>
-            {/* 侧边栏 */}
-            <div className='sidebar'>
-                <div className='sidebar-content'>
-                    {/* Logo */}
-                    <div className='logo-section'>
-                        <h1 className='logo-text'>Clove</h1>
-                    </div>
+        <SidebarProvider defaultOpen>
+            <div className="flex h-screen w-full">
+                <Sidebar variant="sidebar" collapsible="icon">
+                    <SidebarHeader>
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton size="lg" className="w-full justify-center md:justify-start">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                                            <span className="text-lg font-bold text-primary-foreground">C</span>
+                                        </div>
+                                        <span className="text-xl font-semibold">Clove</span>
+                                    </div>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarHeader>
+                    
+                    <SidebarContent>
+                        <SidebarGroup>
+                            <SidebarGroupContent>
+                                <SidebarMenu>
+                                    {navigation.map((item) => {
+                                        const isActive = location.pathname === item.href
+                                        return (
+                                            <SidebarMenuItem key={item.name}>
+                                                <SidebarMenuButton asChild isActive={isActive}>
+                                                    <Link to={item.href}>
+                                                        <item.icon className="h-4 w-4" />
+                                                        <span>{item.name}</span>
+                                                    </Link>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                        )
+                                    })}
+                                </SidebarMenu>
+                            </SidebarGroupContent>
+                        </SidebarGroup>
+                    </SidebarContent>
 
-                    {/* 导航菜单 */}
-                    <nav className='navigation'>
-                        {navigation.map(item => {
-                            const isActive = location.pathname === item.href
-                            return (
-                                <Link
-                                    key={item.name}
-                                    to={item.href}
-                                    className={`nav-link ${isActive ? 'active' : ''}`}
-                                >
-                                    <item.icon className={`nav-icon ${isActive ? 'active' : ''}`} />
-                                    {item.name}
-                                </Link>
-                            )
-                        })}
-                    </nav>
+                    <SidebarFooter>
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton onClick={handleLogout} className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                    <LogOut className="h-4 w-4" />
+                                    <span>退出登录</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarFooter>
+                </Sidebar>
 
-                    {/* 退出登录 */}
-                    <div className='logout-section'>
-                        <button
-                            onClick={handleLogout}
-                            className='logout-button'
-                        >
-                            <LogOut className='logout-icon' />
-                            退出登录
-                        </button>
-                    </div>
+                <div className="flex flex-1 flex-col">
+                    <header className="flex h-14 items-center gap-4 border-b px-6 lg:h-16">
+                        <SidebarTrigger className="-ml-1" />
+                    </header>
+                    
+                    <main className="flex-1 overflow-y-auto">
+                        <div className="container mx-auto max-w-7xl p-6">
+                            <Outlet />
+                        </div>
+                    </main>
                 </div>
             </div>
-
-            {/* 主内容区 */}
-            <div className='main-wrapper'>
-                <main className='main-content'>
-                    <div className='content-container'>
-                        <Outlet />
-                    </div>
-                </main>
-            </div>
-        </div>
+        </SidebarProvider>
     )
 }

@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react'
-import { X, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import type { AccountResponse, AccountCreate, AccountUpdate } from '../api/types'
 import { accountsApi } from '../api/client'
-import './AccountModal.css'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface AccountModalProps {
     account: AccountResponse | null
@@ -18,7 +25,7 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
         organization_uuid: '',
         capabilities: [] as string[],
     })
-    const [accountType, setAccountType] = useState<'' | 'Normal' | 'Pro' | 'Max'>('')
+    const [accountType, setAccountType] = useState<'none' | 'Normal' | 'Pro' | 'Max'>('none')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [showAdvanced, setShowAdvanced] = useState(false)
@@ -37,7 +44,7 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
             // 根据现有能力确定账户类型
             const caps = account.capabilities || []
             if (caps.length === 0) {
-                setAccountType('')
+                setAccountType('none')
             } else if (caps.includes('claude_max')) {
                 setAccountType('Max')
             } else if (caps.includes('claude_pro')) {
@@ -65,7 +72,7 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
             case 'Max':
                 capabilities = ['chat', 'claude_max']
                 break
-            case '':
+            case 'none':
                 capabilities = undefined
                 break
         }
@@ -128,129 +135,84 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
     }
 
     return (
-        <div className='modal-overlay'>
-            <div className='modal-container'>
-                <div className='modal-backdrop' onClick={onClose} />
+        <Dialog open={true} onOpenChange={onClose}>
+            <DialogContent className='sm:max-w-[600px]'>
+                <form onSubmit={handleSubmit}>
+                    <DialogHeader>
+                        <DialogTitle>{account ? '编辑账户' : '添加 Cookie'}</DialogTitle>
+                        <DialogDescription>{account ? '更新账户的认证信息' : '添加新的 Claude 账户 Cookie'}</DialogDescription>
+                    </DialogHeader>
 
-                <span className='modal-helper'>&#8203;</span>
+                    <div className='grid gap-4 py-4'>
+                        <div className='space-y-2'>
+                            <Label htmlFor='cookie_value'>
+                                Cookie <span className='text-destructive'>*</span>
+                            </Label>
+                            <Textarea
+                                id='cookie_value'
+                                placeholder='粘贴您的 Claude Cookie...'
+                                value={formData.cookie_value}
+                                onChange={e => setFormData({ ...formData, cookie_value: e.target.value })}
+                                className='min-h-[100px] font-mono text-sm'
+                                required
+                            />
+                        </div>
 
-                <div className='modal-dialog'>
-                    <form onSubmit={handleSubmit}>
-                        <div className='modal-content'>
-                            <div className='modal-header'>
-                                <h3 className='modal-title'>
-                                    {account ? '编辑账户' : '添加 Cookie'}
-                                </h3>
-                                <button
-                                    type='button'
-                                    className='modal-close'
-                                    onClick={onClose}
-                                >
-                                    <X className='modal-close-icon' />
-                                </button>
-                            </div>
-
-                            <div>
-                                <div className='form-field'>
-                                    <label htmlFor='cookie_value' className='form-label'>
-                                        Cookie <span className='required-star'>*</span>
-                                    </label>
-                                    <textarea
-                                        id='cookie_value'
-                                        rows={3}
-                                        className='form-textarea'
-                                        value={formData.cookie_value}
-                                        onChange={e => setFormData({ ...formData, cookie_value: e.target.value })}
-                                        placeholder='粘贴您的 Claude Cookie...'
-                                        required
-                                    />
-                                </div>
-
-                                <div className='advanced-section'>
-                                    <button
-                                        type='button'
-                                        className='advanced-toggle'
-                                        onClick={() => setShowAdvanced(!showAdvanced)}
-                                    >
-                                        <span>高级选项</span>
-                                        {showAdvanced ? <ChevronUp className='advanced-icon' /> : <ChevronDown className='advanced-icon' />}
-                                    </button>
-
-                                    {showAdvanced && (
-                                        <div className='advanced-content'>
-                                            {!account && (
-                                                <div className='form-field'>
-                                                    <label
-                                                        htmlFor='organization_uuid'
-                                                        className='form-label'
-                                                    >
-                                                        Organization UUID
-                                                    </label>
-                                                    <input
-                                                        type='text'
-                                                        id='organization_uuid'
-                                                        className='form-input'
-                                                        value={formData.organization_uuid}
-                                                        onChange={e =>
-                                                            setFormData({ ...formData, organization_uuid: e.target.value })
-                                                        }
-                                                        placeholder='留空自动获取'
-                                                    />
-                                                </div>
-                                            )}
-
-                                            <div className='form-field'>
-                                                <label
-                                                    htmlFor='accountType'
-                                                    className='form-label'
-                                                >
-                                                    账户类型
-                                                </label>
-                                                <select
-                                                    id='accountType'
-                                                    className='form-select'
-                                                    value={accountType}
-                                                    onChange={e =>
-                                                        setAccountType(e.target.value as '' | 'Normal' | 'Pro' | 'Max')
-                                                    }
-                                                >
-                                                    <option value=''>未选择</option>
-                                                    <option value='Normal'>普通</option>
-                                                    <option value='Pro'>Pro</option>
-                                                    <option value='Max'>Max</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {error && (
-                                    <div className='error-message'>
-                                        <p className='error-text'>{error}</p>
+                        <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                            <CollapsibleTrigger asChild>
+                                <Button variant='outline' type='button' className='w-full justify-between'>
+                                    <span>高级选项</span>
+                                    {showAdvanced ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />}
+                                </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className='space-y-4 mt-4'>
+                                {!account && (
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='organization_uuid'>Organization UUID</Label>
+                                        <Input
+                                            id='organization_uuid'
+                                            placeholder='留空自动获取'
+                                            value={formData.organization_uuid}
+                                            onChange={e => setFormData({ ...formData, organization_uuid: e.target.value })}
+                                        />
                                     </div>
                                 )}
-                            </div>
-                        </div>
 
-                        <div className='modal-footer'>
-                            <button
-                                type='submit'
-                                disabled={loading || !formData.cookie_value.trim()}
-                                className='btn-primary'
-                            >
-                                {loading ? '保存中...' : '保存'}
-                            </button>
-                            <button
-                                type='button'
-                                className='btn-secondary'
-                                onClick={onClose}
-                            >
-                                取消
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+                                <div className='space-y-2'>
+                                    <Label htmlFor='accountType'>账户类型</Label>
+                                    <Select value={accountType} onValueChange={value => setAccountType(value as any)}>
+                                        <SelectTrigger id='accountType'>
+                                            <SelectValue placeholder='选择账户类型' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value='none'>未选择</SelectItem>
+                                            <SelectItem value='Normal'>普通</SelectItem>
+                                            <SelectItem value='Pro'>Pro</SelectItem>
+                                            <SelectItem value='Max'>Max</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </CollapsibleContent>
+                        </Collapsible>
+
+                        {error && (
+                            <Alert variant='destructive'>
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
+                    </div>
+
+                    <DialogFooter>
+                        <Button type='button' variant='outline' onClick={onClose}>
+                            取消
+                        </Button>
+                        <Button type='submit' disabled={loading || !formData.cookie_value.trim()}>
+                            {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                            {loading ? '保存中...' : '保存'}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     )
 }

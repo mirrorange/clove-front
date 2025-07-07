@@ -5,26 +5,22 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+    plugins: [react(), tailwindcss()],
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './src'),
+        },
     },
-  },
-  server: {
-    proxy: {
-      '/admin': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-      '/v1': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-      '/health': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
+    server: {
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+            },
+            '/health': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+            },
+        },
     },
-  },
 })

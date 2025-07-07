@@ -38,18 +38,18 @@ api.interceptors.response.use(
 
 // 账户相关 API
 export const accountsApi = {
-    list: () => api.get<AccountResponse[]>('/admin/accounts'),
-    get: (organizationUuid: string) => api.get<AccountResponse>(`/admin/accounts/${organizationUuid}`),
-    create: (account: AccountCreate) => api.post<AccountResponse>('/admin/accounts', account),
+    list: () => api.get<AccountResponse[]>('/api/admin/accounts'),
+    get: (organizationUuid: string) => api.get<AccountResponse>(`/api/admin/accounts/${organizationUuid}`),
+    create: (account: AccountCreate) => api.post<AccountResponse>('/api/admin/accounts', account),
     update: (organizationUuid: string, account: AccountUpdate) =>
-        api.put<AccountResponse>(`/admin/accounts/${organizationUuid}`, account),
-    delete: (organizationUuid: string) => api.delete(`/admin/accounts/${organizationUuid}`),
+        api.put<AccountResponse>(`/api/admin/accounts/${organizationUuid}`, account),
+    delete: (organizationUuid: string) => api.delete(`/api/admin/accounts/${organizationUuid}`),
 }
 
 // 设置相关 API
 export const settingsApi = {
-    get: () => api.get<SettingsRead>('/admin/settings'),
-    update: (settings: SettingsUpdate) => api.put<SettingsUpdate>('/admin/settings', settings),
+    get: () => api.get<SettingsRead>('/api/admin/settings'),
+    update: (settings: SettingsUpdate) => api.put<SettingsUpdate>('/api/admin/settings', settings),
 }
 
 // 健康检查
@@ -59,5 +59,5 @@ export const healthApi = {
 
 // 统计信息 API
 export const statisticsApi = {
-    get: () => api.get<StatisticsResponse>('/admin/statistics'),
+    get: () => api.get<StatisticsResponse>('/api/admin/statistics'),
 }

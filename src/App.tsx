@@ -4,6 +4,7 @@ import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { Accounts } from './pages/Accounts'
 import { Settings } from './pages/Settings'
+import { Toaster } from './components/ui/sonner'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const adminKey = localStorage.getItem('adminKey')
@@ -31,6 +32,7 @@ function App() {
                     <Route path='settings' element={<Settings />} />
                 </Route>
             </Routes>
+            <Toaster />
         </BrowserRouter>
     )
 }

@@ -10,6 +10,16 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 interface AccountModalProps {
@@ -26,6 +36,7 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
     const [accountType, setAccountType] = useState<'none' | 'Free' | 'Pro' | 'Max'>('none')
     const [loading, setLoading] = useState(false)
     const [showAdvanced, setShowAdvanced] = useState(false)
+    const [showCookieAlert, setShowCookieAlert] = useState(false)
     const isMobile = useIsMobile()
 
     useEffect(() => {
@@ -49,8 +60,37 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
         }
     }, [account])
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const validateAndProcessCookie = (cookieValue: string): { isValid: boolean; processedValue: string } => {
+        let processedValue = cookieValue.trim()
+
+        if (processedValue.startsWith('sk-ant-sid01-')) {
+            processedValue = `sessionKey=${processedValue}`
+        }
+
+        const isValid = processedValue.startsWith('sessionKey=sk-ant-sid01-')
+
+        return { isValid, processedValue }
+    }
+
+    const handleSubmitForm = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (formData.cookie_value) {
+            const { isValid, processedValue } = validateAndProcessCookie(formData.cookie_value)
+
+            formData.cookie_value = processedValue
+            setFormData({ ...formData, cookie_value: processedValue })
+
+            if (!isValid) {
+                setShowCookieAlert(true)
+                return
+            }
+        }
+
+        await handleSubmitAccount()
+    }
+
+    const handleSubmitAccount = async () => {
         setLoading(true)
 
         let capabilities: string[] | undefined
@@ -107,6 +147,31 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
             setLoading(false)
         }
     }
+
+    const handleCookieAlertConfirm = async () => {
+        setShowCookieAlert(false)
+        await handleSubmitAccount()
+    }
+
+    const cookieAlertDialog = (
+        <AlertDialog open={showCookieAlert} onOpenChange={setShowCookieAlert}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Cookie 格式警告</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        检测到您输入的 Cookie 格式可能不正确。标准格式应包含 "sessionKey=sk-ant-sid01-" 开头。
+                        <br />
+                        <br />
+                        如果您使用的是反向代理或自定义配置，可以忽略此警告继续提交。
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCookieAlertConfirm}>仍然提交</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    )
 
     const formContent = (
         <>
@@ -183,35 +248,43 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
 
     if (!isMobile) {
         return (
-            <Dialog open={true} onOpenChange={onClose}>
-                <DialogContent className='sm:max-w-[600px]'>
-                    <form onSubmit={handleSubmit}>
-                        <DialogHeader>
-                            <DialogTitle>{account ? '编辑账户' : '添加 Cookie'}</DialogTitle>
-                            <DialogDescription>
-                                {account ? '更新账户的认证信息' : '添加新的 Claude 账户 Cookie'}
-                            </DialogDescription>
-                        </DialogHeader>
-                        {formContent}
-                        <DialogFooter>{footerContent}</DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            <>
+                <Dialog open={true} onOpenChange={onClose}>
+                    <DialogContent className='sm:max-w-[600px]'>
+                        <form onSubmit={handleSubmitForm}>
+                            <DialogHeader>
+                                <DialogTitle>{account ? '编辑账户' : '添加 Cookie'}</DialogTitle>
+                                <DialogDescription>
+                                    {account ? '更新账户的认证信息' : '添加新的 Claude 账户 Cookie'}
+                                </DialogDescription>
+                            </DialogHeader>
+                            {formContent}
+                            <DialogFooter>{footerContent}</DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+                {cookieAlertDialog}
+            </>
         )
     }
 
     return (
-        <Drawer open={true} onOpenChange={onClose}>
-            <DrawerContent>
-                <form onSubmit={handleSubmit} className='max-h-[90vh] overflow-auto'>
-                    <DrawerHeader>
-                        <DrawerTitle>{account ? '编辑账户' : '添加 Cookie'}</DrawerTitle>
-                        <DrawerDescription>{account ? '更新账户的认证信息' : '添加新的 Claude 账户 Cookie'}</DrawerDescription>
-                    </DrawerHeader>
-                    <div className='px-4'>{formContent}</div>
-                    <DrawerFooter className='flex-row justify-end space-x-2'>{footerContent}</DrawerFooter>
-                </form>
-            </DrawerContent>
-        </Drawer>
+        <>
+            <Drawer open={true} onOpenChange={onClose}>
+                <DrawerContent>
+                    <form onSubmit={handleSubmitForm} className='max-h-[90vh] overflow-auto'>
+                        <DrawerHeader>
+                            <DrawerTitle>{account ? '编辑账户' : '添加 Cookie'}</DrawerTitle>
+                            <DrawerDescription>
+                                {account ? '更新账户的认证信息' : '添加新的 Claude 账户 Cookie'}
+                            </DrawerDescription>
+                        </DrawerHeader>
+                        <div className='px-4'>{formContent}</div>
+                        <DrawerFooter className='flex-row justify-end space-x-2'>{footerContent}</DrawerFooter>
+                    </form>
+                </DrawerContent>
+            </Drawer>
+            {cookieAlertDialog}
+        </>
     )
 }

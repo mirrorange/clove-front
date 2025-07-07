@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 interface AccountModalProps {
@@ -26,7 +25,6 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
     })
     const [accountType, setAccountType] = useState<'none' | 'Free' | 'Pro' | 'Max'>('none')
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
     const [showAdvanced, setShowAdvanced] = useState(false)
     const isMobile = useIsMobile()
 
@@ -53,7 +51,6 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setError('')
         setLoading(true)
 
         let capabilities: string[] | undefined
@@ -106,8 +103,6 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
             }
 
             onClose()
-        } catch (err: any) {
-            setError(err.response?.data?.detail || '操作失败')
         } finally {
             setLoading(false)
         }
@@ -166,12 +161,6 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
                         </div>
                     </CollapsibleContent>
                 </Collapsible>
-
-                {error && (
-                    <Alert variant='destructive'>
-                        <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                )}
             </div>
         </>
     )

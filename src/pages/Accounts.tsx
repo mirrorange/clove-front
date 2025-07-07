@@ -11,6 +11,7 @@ import {
     MoreHorizontal,
     Users,
     ChevronRight,
+    KeyRound,
 } from 'lucide-react'
 import type { AccountResponse } from '../api/types'
 import { accountsApi } from '../api/client'
@@ -102,7 +103,13 @@ export function Accounts() {
     }
 
     const getAuthTypeIcon = (authType: string) => {
-        return authType === 'both' ? <Shield className='h-4 w-4' /> : <Cookie className='h-4 w-4' />
+        if (authType === 'both') {
+            return <Shield className='h-4 w-4' />
+        } else if (authType === 'oauth_only') {
+            return <KeyRound className='h-4 w-4' />
+        } else {
+            return <Cookie className='h-4 w-4' />
+        }
     }
 
     const getAuthTypeName = (authType: string) => {

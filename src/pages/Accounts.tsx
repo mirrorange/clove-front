@@ -354,8 +354,8 @@ export function Accounts() {
         <div className='space-y-6'>
             <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
                 <div>
-                    <h1 className='text-3xl font-bold tracking-tight'>账户管理</h1>
-                    <p className='text-muted-foreground'>管理 Claude 账户，支持 Cookie 和 OAuth 认证方式</p>
+                    <h1 className='text-3xl font-bold tracking-tight pb-1'>账户管理</h1>
+                    <p className='text-muted-foreground'>管理您的 Claude 账户</p>
                 </div>
                 <Button onClick={handleAdd} className='w-full sm:w-auto'>
                     <Plus className='mr-2 h-4 w-4' />
@@ -373,7 +373,7 @@ export function Accounts() {
                         <p className='text-muted-foreground mb-4 text-center'>点击"添加 Cookie"创建第一个账户</p>
                         <Button onClick={handleAdd}>
                             <Plus className='mr-2 h-4 w-4' />
-                            添加账户
+                            添加 Cookie
                         </Button>
                     </CardContent>
                 </Card>
@@ -461,7 +461,9 @@ export function Accounts() {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>确定要删除这个账户吗？</AlertDialogTitle>
-                        <AlertDialogDescription>此操作无法撤销。删除后将永久移除该账户的所有数据。</AlertDialogDescription>
+                        <AlertDialogDescription>
+                            此操作无法撤销。删除后该账户将从 Clove 中移除，但不会影响您在 Claude.ai 中的数据。
+                        </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>取消</AlertDialogCancel>

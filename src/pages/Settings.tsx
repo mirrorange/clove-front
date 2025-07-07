@@ -159,20 +159,20 @@ export function Settings() {
 
     if (loading || !settings) {
         return (
-            <div className="space-y-6">
-                <div className="space-y-2">
-                    <Skeleton className="h-8 w-48" />
-                    <Skeleton className="h-4 w-96" />
+            <div className='space-y-6'>
+                <div className='space-y-2'>
+                    <Skeleton className='h-8 w-48' />
+                    <Skeleton className='h-4 w-96' />
                 </div>
-                
+
                 {[...Array(4)].map((_, i) => (
                     <Card key={i}>
                         <CardHeader>
-                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className='h-6 w-32' />
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Skeleton className="h-10 w-full" />
-                            <Skeleton className="h-10 w-full" />
+                        <CardContent className='space-y-4'>
+                            <Skeleton className='h-10 w-full' />
+                            <Skeleton className='h-10 w-full' />
                         </CardContent>
                     </Card>
                 ))}
@@ -181,28 +181,28 @@ export function Settings() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <div className='space-y-6'>
+            <div className='flex items-center justify-between'>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">应用设置</h1>
-                    <p className="text-muted-foreground">管理您的应用程序配置和密钥</p>
+                    <h1 className='text-3xl font-bold tracking-tight pb-1'>应用设置</h1>
+                    <p className='text-muted-foreground'>管理您的应用程序配置和密钥</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className='flex items-center gap-2'>
                     {saveStatus === 'saving' && (
-                        <Badge variant="secondary" className="gap-1">
-                            <Loader2 className="h-3 w-3 animate-spin" />
+                        <Badge variant='secondary' className='gap-1'>
+                            <Loader2 className='h-3 w-3 animate-spin' />
                             保存中...
                         </Badge>
                     )}
                     {saveStatus === 'saved' && (
-                        <Badge variant="default" className="gap-1 bg-green-500">
-                            <Check className="h-3 w-3" />
+                        <Badge variant='default' className='gap-1 bg-green-500'>
+                            <Check className='h-3 w-3' />
                             已保存
                         </Badge>
                     )}
                     {saveStatus === 'error' && (
-                        <Badge variant="destructive" className="gap-1">
-                            <AlertCircle className="h-3 w-3" />
+                        <Badge variant='destructive' className='gap-1'>
+                            <AlertCircle className='h-3 w-3' />
                             保存失败
                         </Badge>
                     )}
@@ -212,26 +212,26 @@ export function Settings() {
             {/* API Keys */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Key className="h-5 w-5" />
+                    <CardTitle className='flex items-center gap-2'>
+                        <Key className='h-5 w-5' />
                         API 密钥
                     </CardTitle>
                     <CardDescription>管理您的 API 访问密钥</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className='space-y-4'>
                     {settings.api_keys.length === 0 ? (
                         <Alert>
                             <AlertDescription>暂无 API 密钥，请添加第一个密钥。</AlertDescription>
                         </Alert>
                     ) : (
-                        <div className="space-y-2">
+                        <div className='space-y-2'>
                             {settings.api_keys.map((key, index) => (
-                                <div key={index} className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                                    <code className="flex-1 text-sm font-mono">{key}</code>
+                                <div key={index} className='flex items-center gap-2 p-3 bg-muted rounded-lg'>
+                                    <code className='flex-1 text-sm font-mono'>{key}</code>
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="sm" className="text-destructive">
-                                                <Trash2 className="h-4 w-4" />
+                                            <Button variant='ghost' size='sm' className='text-destructive'>
+                                                <Trash2 className='h-4 w-4' />
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
@@ -256,23 +256,18 @@ export function Settings() {
 
                     <Separator />
 
-                    <div className="space-y-2">
-                        <Label htmlFor="new-api-key">添加新 API 密钥</Label>
-                        <div className="flex gap-2">
+                    <div className='space-y-2'>
+                        <Label htmlFor='new-api-key'>添加新 API 密钥</Label>
+                        <div className='flex gap-2'>
                             <Input
-                                id="new-api-key"
+                                id='new-api-key'
                                 value={newApiKey}
-                                onChange={(e) => setNewApiKey(e.target.value)}
-                                placeholder="输入或生成新密钥"
-                                className="font-mono"
+                                onChange={e => setNewApiKey(e.target.value)}
+                                placeholder='输入或生成新密钥'
+                                className='font-mono'
                             />
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => generateNewKey('api')}
-                                title="生成新密钥"
-                            >
-                                <RefreshCw className="h-4 w-4" />
+                            <Button variant='outline' size='icon' onClick={() => generateNewKey('api')} title='生成新密钥'>
+                                <RefreshCw className='h-4 w-4' />
                             </Button>
                             <Button onClick={handleAddApiKey} disabled={!newApiKey}>
                                 添加
@@ -285,26 +280,26 @@ export function Settings() {
             {/* Admin Keys */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Shield className="h-5 w-5" />
+                    <CardTitle className='flex items-center gap-2'>
+                        <Shield className='h-5 w-5' />
                         管理员密钥
                     </CardTitle>
                     <CardDescription>管理您的管理员访问密钥</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className='space-y-4'>
                     {settings.admin_api_keys.length === 0 ? (
                         <Alert>
                             <AlertDescription>暂无管理员密钥，请添加第一个密钥。</AlertDescription>
                         </Alert>
                     ) : (
-                        <div className="space-y-2">
+                        <div className='space-y-2'>
                             {settings.admin_api_keys.map((key, index) => (
-                                <div key={index} className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                                    <code className="flex-1 text-sm font-mono">{key}</code>
+                                <div key={index} className='flex items-center gap-2 p-3 bg-muted rounded-lg'>
+                                    <code className='flex-1 text-sm font-mono'>{key}</code>
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="sm" className="text-destructive">
-                                                <Trash2 className="h-4 w-4" />
+                                            <Button variant='ghost' size='sm' className='text-destructive'>
+                                                <Trash2 className='h-4 w-4' />
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
@@ -329,23 +324,18 @@ export function Settings() {
 
                     <Separator />
 
-                    <div className="space-y-2">
-                        <Label htmlFor="new-admin-key">添加新管理员密钥</Label>
-                        <div className="flex gap-2">
+                    <div className='space-y-2'>
+                        <Label htmlFor='new-admin-key'>添加新管理员密钥</Label>
+                        <div className='flex gap-2'>
                             <Input
-                                id="new-admin-key"
+                                id='new-admin-key'
                                 value={newAdminKey}
-                                onChange={(e) => setNewAdminKey(e.target.value)}
-                                placeholder="输入或生成新密钥"
-                                className="font-mono"
+                                onChange={e => setNewAdminKey(e.target.value)}
+                                placeholder='输入或生成新密钥'
+                                className='font-mono'
                             />
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => generateNewKey('admin')}
-                                title="生成新密钥"
-                            >
-                                <RefreshCw className="h-4 w-4" />
+                            <Button variant='outline' size='icon' onClick={() => generateNewKey('admin')} title='生成新密钥'>
+                                <RefreshCw className='h-4 w-4' />
                             </Button>
                             <Button onClick={handleAddAdminKey} disabled={!newAdminKey}>
                                 添加
@@ -358,42 +348,42 @@ export function Settings() {
             {/* Claude Settings */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Globe className="h-5 w-5" />
+                    <CardTitle className='flex items-center gap-2'>
+                        <Globe className='h-5 w-5' />
                         Claude 配置
                     </CardTitle>
                     <CardDescription>配置 Claude AI 相关设置</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="claude-ai-url">Claude AI URL</Label>
+                <CardContent className='space-y-4'>
+                    <div className='grid gap-4 md:grid-cols-2'>
+                        <div className='space-y-2'>
+                            <Label htmlFor='claude-ai-url'>Claude AI URL</Label>
                             <Input
-                                id="claude-ai-url"
+                                id='claude-ai-url'
                                 value={settings.claude_ai_url}
-                                onChange={(e) => updateSettings({ ...settings, claude_ai_url: e.target.value })}
+                                onChange={e => updateSettings({ ...settings, claude_ai_url: e.target.value })}
                                 onBlur={() => handleFieldChange(settings)}
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="claude-api-baseurl">Claude API Base URL</Label>
+                        <div className='space-y-2'>
+                            <Label htmlFor='claude-api-baseurl'>Claude API Base URL</Label>
                             <Input
-                                id="claude-api-baseurl"
+                                id='claude-api-baseurl'
                                 value={settings.claude_api_baseurl}
-                                onChange={(e) => updateSettings({ ...settings, claude_api_baseurl: e.target.value })}
+                                onChange={e => updateSettings({ ...settings, claude_api_baseurl: e.target.value })}
                                 onBlur={() => handleFieldChange(settings)}
                             />
                         </div>
 
-                        <div className="space-y-2 md:col-span-2">
-                            <Label htmlFor="proxy-url">代理 URL (可选)</Label>
+                        <div className='space-y-2 md:col-span-2'>
+                            <Label htmlFor='proxy-url'>代理 URL (可选)</Label>
                             <Input
-                                id="proxy-url"
+                                id='proxy-url'
                                 value={settings.proxy_url || ''}
-                                onChange={(e) => updateSettings({ ...settings, proxy_url: e.target.value || null })}
+                                onChange={e => updateSettings({ ...settings, proxy_url: e.target.value || null })}
                                 onBlur={() => handleFieldChange(settings)}
-                                placeholder="留空则不使用代理"
+                                placeholder='留空则不使用代理'
                             />
                         </div>
                     </div>
@@ -403,57 +393,55 @@ export function Settings() {
             {/* Chat Settings */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Sliders className="h-5 w-5" />
-                        聊天设置
+                    <CardTitle className='flex items-center gap-2'>
+                        <Sliders className='h-5 w-5' />
+                        格式化设置
                     </CardTitle>
-                    <CardDescription>自定义聊天体验和行为</CardDescription>
+                    <CardDescription>自定义上下文格式</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="custom-prompt">自定义提示词 (可选)</Label>
+                <CardContent className='space-y-6'>
+                    <div className='space-y-2'>
+                        <Label htmlFor='custom-prompt'>自定义提示词 (可选)</Label>
                         <Textarea
-                            id="custom-prompt"
+                            id='custom-prompt'
                             value={settings.custom_prompt || ''}
-                            onChange={(e) => updateSettings({ ...settings, custom_prompt: e.target.value || null })}
+                            onChange={e => updateSettings({ ...settings, custom_prompt: e.target.value || null })}
                             onBlur={() => handleFieldChange(settings)}
-                            placeholder="输入自定义的系统提示词..."
-                            className="min-h-[100px]"
+                            placeholder='输入自定义的系统提示词...'
+                            className='min-h-[100px]'
                         />
                     </div>
 
                     <Separator />
 
-                    <div className="grid gap-4 md:grid-cols-3">
-                        <div className="space-y-2">
-                            <Label htmlFor="human-name">用户名称</Label>
+                    <div className='grid gap-4 md:grid-cols-3'>
+                        <div className='space-y-2'>
+                            <Label htmlFor='human-name'>用户名称</Label>
                             <Input
-                                id="human-name"
+                                id='human-name'
                                 value={settings.human_name}
-                                onChange={(e) => updateSettings({ ...settings, human_name: e.target.value })}
+                                onChange={e => updateSettings({ ...settings, human_name: e.target.value })}
                                 onBlur={() => handleFieldChange(settings)}
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="assistant-name">助手名称</Label>
+                        <div className='space-y-2'>
+                            <Label htmlFor='assistant-name'>助手名称</Label>
                             <Input
-                                id="assistant-name"
+                                id='assistant-name'
                                 value={settings.assistant_name}
-                                onChange={(e) => updateSettings({ ...settings, assistant_name: e.target.value })}
+                                onChange={e => updateSettings({ ...settings, assistant_name: e.target.value })}
                                 onBlur={() => handleFieldChange(settings)}
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="padtxt-length">Padding 长度</Label>
+                        <div className='space-y-2'>
+                            <Label htmlFor='padtxt-length'>Padding 长度</Label>
                             <Input
-                                id="padtxt-length"
-                                type="number"
+                                id='padtxt-length'
+                                type='number'
                                 value={settings.padtxt_length}
-                                onChange={(e) =>
-                                    updateSettings({ ...settings, padtxt_length: parseInt(e.target.value) || 0 })
-                                }
+                                onChange={e => updateSettings({ ...settings, padtxt_length: parseInt(e.target.value) || 0 })}
                                 onBlur={() => handleFieldChange(settings)}
                             />
                         </div>
@@ -461,40 +449,40 @@ export function Settings() {
 
                     <Separator />
 
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="use-real-roles">使用真实角色</Label>
-                                <p className="text-sm text-muted-foreground">启用后将使用真实的角色标识</p>
+                    <div className='space-y-4'>
+                        <div className='flex items-center justify-between'>
+                            <div className='space-y-0.5'>
+                                <Label htmlFor='use-real-roles'>使用真实角色</Label>
+                                <p className='text-sm text-muted-foreground'>启用后将使用真实角色前缀</p>
                             </div>
                             <Switch
-                                id="use-real-roles"
+                                id='use-real-roles'
                                 checked={settings.use_real_roles}
-                                onCheckedChange={(checked) => handleFieldChange({ ...settings, use_real_roles: checked })}
+                                onCheckedChange={checked => handleFieldChange({ ...settings, use_real_roles: checked })}
                             />
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="allow-external-images">允许外部图片</Label>
-                                <p className="text-sm text-muted-foreground">允许加载和显示外部图片</p>
+                        <div className='flex items-center justify-between'>
+                            <div className='space-y-0.5'>
+                                <Label htmlFor='allow-external-images'>允许外部图片</Label>
+                                <p className='text-sm text-muted-foreground'>允许反代加载外部图片</p>
                             </div>
                             <Switch
-                                id="allow-external-images"
+                                id='allow-external-images'
                                 checked={settings.allow_external_images}
-                                onCheckedChange={(checked) => handleFieldChange({ ...settings, allow_external_images: checked })}
+                                onCheckedChange={checked => handleFieldChange({ ...settings, allow_external_images: checked })}
                             />
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="preserve-chats">保存聊天记录</Label>
-                                <p className="text-sm text-muted-foreground">保存聊天历史记录以供后续查看</p>
+                        <div className='flex items-center justify-between'>
+                            <div className='space-y-0.5'>
+                                <Label htmlFor='preserve-chats'>保留聊天记录</Label>
+                                <p className='text-sm text-muted-foreground'>保留聊天历史记录以供后续查看</p>
                             </div>
                             <Switch
-                                id="preserve-chats"
+                                id='preserve-chats'
                                 checked={settings.preserve_chats}
-                                onCheckedChange={(checked) => handleFieldChange({ ...settings, preserve_chats: checked })}
+                                onCheckedChange={checked => handleFieldChange({ ...settings, preserve_chats: checked })}
                             />
                         </div>
                     </div>

@@ -21,13 +21,10 @@ interface AccountModalProps {
 export function AccountModal({ account, onClose }: AccountModalProps) {
     const [formData, setFormData] = useState({
         cookie_value: '',
-        oauth_access_token: '',
-        oauth_refresh_token: '',
-        oauth_expires_at: '',
         organization_uuid: '',
         capabilities: [] as string[],
     })
-    const [accountType, setAccountType] = useState<'none' | 'Normal' | 'Pro' | 'Max'>('none')
+    const [accountType, setAccountType] = useState<'none' | 'Free' | 'Pro' | 'Max'>('none')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [showAdvanced, setShowAdvanced] = useState(false)
@@ -37,14 +34,10 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
         if (account) {
             setFormData({
                 cookie_value: '',
-                oauth_access_token: '',
-                oauth_refresh_token: '',
-                oauth_expires_at: '',
                 organization_uuid: account.organization_uuid,
                 capabilities: account.capabilities || [],
             })
 
-            // 根据现有能力确定账户类型
             const caps = account.capabilities || []
             if (caps.length === 0) {
                 setAccountType('none')
@@ -53,7 +46,7 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
             } else if (caps.includes('claude_pro')) {
                 setAccountType('Pro')
             } else {
-                setAccountType('Normal')
+                setAccountType('Free')
             }
         }
     }, [account])
@@ -63,10 +56,9 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
         setError('')
         setLoading(true)
 
-        // 根据账户类型设置能力列表
         let capabilities: string[] | undefined
         switch (accountType) {
-            case 'Normal':
+            case 'Free':
                 capabilities = ['chat']
                 break
             case 'Pro':
@@ -89,14 +81,6 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
                     updateData.cookie_value = formData.cookie_value
                 }
 
-                if (formData.oauth_access_token && formData.oauth_refresh_token && formData.oauth_expires_at) {
-                    updateData.oauth_token = {
-                        access_token: formData.oauth_access_token,
-                        refresh_token: formData.oauth_refresh_token,
-                        expires_at: parseFloat(formData.oauth_expires_at),
-                    }
-                }
-
                 if (capabilities) {
                     updateData.capabilities = capabilities
                 }
@@ -108,14 +92,6 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
 
                 if (formData.cookie_value) {
                     createData.cookie_value = formData.cookie_value
-                }
-
-                if (formData.oauth_access_token && formData.oauth_refresh_token && formData.oauth_expires_at) {
-                    createData.oauth_token = {
-                        access_token: formData.oauth_access_token,
-                        refresh_token: formData.oauth_refresh_token,
-                        expires_at: parseFloat(formData.oauth_expires_at),
-                    }
                 }
 
                 if (formData.organization_uuid) {
@@ -177,12 +153,12 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
                         <div className='space-y-2'>
                             <Label htmlFor='accountType'>账户类型</Label>
                             <Select value={accountType} onValueChange={value => setAccountType(value as any)}>
-                                <SelectTrigger id='accountType'>
+                                <SelectTrigger className='w-full' id='accountType'>
                                     <SelectValue placeholder='选择账户类型' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value='none'>未选择</SelectItem>
-                                    <SelectItem value='Normal'>普通</SelectItem>
+                                    <SelectItem value='Free'>Free</SelectItem>
                                     <SelectItem value='Pro'>Pro</SelectItem>
                                     <SelectItem value='Max'>Max</SelectItem>
                                 </SelectContent>

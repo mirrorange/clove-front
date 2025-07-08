@@ -16,6 +16,7 @@ import {
 import type { AccountResponse } from '../api/types'
 import { accountsApi } from '../api/client'
 import { AccountModal } from '../components/AccountModal'
+import { OAuthModal } from '../components/OAuthModal'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -39,6 +40,7 @@ export function Accounts() {
     const [accounts, setAccounts] = useState<AccountResponse[]>([])
     const [loading, setLoading] = useState(true)
     const [modalOpen, setModalOpen] = useState(false)
+    const [oauthModalOpen, setOauthModalOpen] = useState(false)
     const [editingAccount, setEditingAccount] = useState<AccountResponse | null>(null)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [accountToDelete, setAccountToDelete] = useState<string | null>(null)
@@ -87,6 +89,11 @@ export function Accounts() {
     const handleModalClose = () => {
         setModalOpen(false)
         setEditingAccount(null)
+        loadAccounts()
+    }
+
+    const handleOAuthModalClose = () => {
+        setOauthModalOpen(false)
         loadAccounts()
     }
 
@@ -357,10 +364,16 @@ export function Accounts() {
                     <h1 className='text-3xl font-bold tracking-tight pb-1'>账户管理</h1>
                     <p className='text-muted-foreground'>管理您的 Claude 账户</p>
                 </div>
-                <Button onClick={handleAdd} className='w-full sm:w-auto'>
-                    <Plus className='mr-2 h-4 w-4' />
-                    添加 Cookie
-                </Button>
+                <div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>
+                    <Button onClick={() => setOauthModalOpen(true)} variant='outline' className='w-full sm:w-auto'>
+                        <KeyRound className='mr-2 h-4 w-4' />
+                        OAuth 登录
+                    </Button>
+                    <Button onClick={handleAdd} className='w-full sm:w-auto'>
+                        <Plus className='mr-2 h-4 w-4' />
+                        添加 Cookie
+                    </Button>
+                </div>
             </div>
 
             {accounts.length === 0 ? (
@@ -370,11 +383,17 @@ export function Accounts() {
                             <Users className='h-12 w-12 text-muted-foreground' />
                         </div>
                         <h3 className='text-lg font-semibold mb-2'>暂无账户</h3>
-                        <p className='text-muted-foreground mb-4 text-center'>点击"添加 Cookie"创建第一个账户</p>
-                        <Button onClick={handleAdd}>
-                            <Plus className='mr-2 h-4 w-4' />
-                            添加 Cookie
-                        </Button>
+                        <p className='text-muted-foreground mb-4 text-center'>点击"添加 Cookie"或"OAuth 登录"创建第一个账户</p>
+                        <div className='flex flex-col sm:flex-row gap-2'>
+                            <Button onClick={() => setOauthModalOpen(true)} variant='outline'>
+                                <KeyRound className='mr-2 h-4 w-4' />
+                                OAuth 登录
+                            </Button>
+                            <Button onClick={handleAdd}>
+                                <Plus className='mr-2 h-4 w-4' />
+                                添加 Cookie
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             ) : !isMobile ? (
@@ -478,6 +497,7 @@ export function Accounts() {
             </AlertDialog>
 
             {modalOpen && <AccountModal account={editingAccount} onClose={handleModalClose} />}
+            {oauthModalOpen && <OAuthModal onClose={handleOAuthModalClose} />}
         </div>
     )
 }

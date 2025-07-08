@@ -19,6 +19,13 @@ export interface AccountUpdate {
   status?: 'valid' | 'invalid' | 'rate_limited';
 }
 
+export interface OAuthCodeExchange {
+  organization_uuid: string;
+  code: string;
+  pkce_verifier: string;
+  capabilities?: string[];
+}
+
 export interface AccountResponse {
   organization_uuid: string;
   capabilities?: string[];

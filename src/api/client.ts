@@ -1,6 +1,14 @@
 import axios from 'axios'
 import { toast } from 'sonner'
-import type { AccountResponse, AccountCreate, AccountUpdate, OAuthCodeExchange, SettingsRead, SettingsUpdate, StatisticsResponse } from './types'
+import type {
+    AccountResponse,
+    AccountCreate,
+    AccountUpdate,
+    OAuthCodeExchange,
+    SettingsRead,
+    SettingsUpdate,
+    StatisticsResponse,
+} from './types'
 
 const api = axios.create({
     headers: {
@@ -22,12 +30,7 @@ api.interceptors.response.use(
     response => response,
     error => {
         // 尝试获取错误响应中的 detail.message
-        const errorMessage =
-            error.response?.data?.detail?.message ||
-            error.response?.data?.detail ||
-            error.response?.data?.message ||
-            error.message ||
-            '发生未知错误'
+        const errorMessage = error.response?.data?.detail?.message || '发生未知错误'
 
         toast.error(errorMessage)
 
@@ -44,7 +47,7 @@ export const accountsApi = {
     update: (organizationUuid: string, account: AccountUpdate) =>
         api.put<AccountResponse>(`/api/admin/accounts/${organizationUuid}`, account),
     delete: (organizationUuid: string) => api.delete(`/api/admin/accounts/${organizationUuid}`),
-    exchangeOAuthCode: (exchangeData: OAuthCodeExchange) => 
+    exchangeOAuthCode: (exchangeData: OAuthCodeExchange) =>
         api.post<AccountResponse>('/api/admin/accounts/oauth/exchange', exchangeData),
 }
 

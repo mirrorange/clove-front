@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Loader2, AlertCircle } from 'lucide-react'
 import type { AccountResponse, AccountCreate, AccountUpdate } from '../api/types'
 import { accountsApi } from '../api/client'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -21,6 +21,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { isValidUUID, formatUUID } from '@/utils/validators'
 
 interface AccountModalProps {
     account: AccountResponse | null
@@ -37,6 +38,7 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
     const [loading, setLoading] = useState(false)
     const [showAdvanced, setShowAdvanced] = useState(false)
     const [showCookieAlert, setShowCookieAlert] = useState(false)
+    const [uuidError, setUuidError] = useState('')
     const isMobile = useIsMobile()
 
     useEffect(() => {
@@ -132,7 +134,7 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
                 }
 
                 if (formData.organization_uuid) {
-                    createData.organization_uuid = formData.organization_uuid
+                    createData.organization_uuid = formatUUID(formData.organization_uuid)
                 }
 
                 if (capabilities) {
@@ -205,8 +207,24 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
                                     id='organization_uuid'
                                     placeholder='留空自动获取'
                                     value={formData.organization_uuid}
-                                    onChange={e => setFormData({ ...formData, organization_uuid: e.target.value })}
+                                    onChange={e => {
+                                        const value = e.target.value
+                                        setFormData({ ...formData, organization_uuid: value })
+                                        const formatted = formatUUID(value)
+                                        if (formatted && !isValidUUID(formatted)) {
+                                            setUuidError('请输入有效的 UUID 格式')
+                                        } else {
+                                            setUuidError('')
+                                        }
+                                    }}
+                                    className={uuidError && formData.organization_uuid ? 'border-destructive' : ''}
                                 />
+                                {uuidError && formData.organization_uuid && (
+                                    <div className='flex items-center gap-1 text-sm text-destructive'>
+                                        <AlertCircle className='h-3 w-3' />
+                                        <span>{uuidError}</span>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -235,7 +253,14 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
             <Button type='button' variant='outline' onClick={onClose}>
                 取消
             </Button>
-            <Button type='submit' disabled={loading || !formData.cookie_value.trim()}>
+            <Button
+                type='submit'
+                disabled={
+                    loading ||
+                    !formData.cookie_value.trim() ||
+                    (!!formData.organization_uuid && !isValidUUID(formatUUID(formData.organization_uuid)))
+                }
+            >
                 {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                 {loading ? '保存中...' : '保存'}
             </Button>

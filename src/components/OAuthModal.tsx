@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { isValidUUID, formatUUID } from '@/utils/validators'
 
 interface OAuthModalProps {
     onClose: () => void
@@ -25,6 +26,7 @@ export function OAuthModal({ onClose }: OAuthModalProps) {
     const [authCode, setAuthCode] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const [uuidError, setUuidError] = useState('')
     const [step, setStep] = useState<'input' | 'code'>('input')
     const [pkceVerifier, setPkceVerifier] = useState('')
     const isMobile = useIsMobile()
@@ -68,7 +70,7 @@ export function OAuthModal({ onClose }: OAuthModalProps) {
             const params = new URLSearchParams({
                 response_type: 'code',
                 client_id: CLIENT_ID,
-                organization_uuid: organizationUuid,
+                organization_uuid: formatUUID(organizationUuid),
                 redirect_uri: REDIRECT_URI,
                 scope: 'user:profile user:inference',
                 state: verifier,
@@ -102,7 +104,7 @@ export function OAuthModal({ onClose }: OAuthModalProps) {
         try {
             // 发送 code 到后端进行 token 交换
             const exchangeData = {
-                organization_uuid: organizationUuid,
+                organization_uuid: formatUUID(organizationUuid),
                 code: authCode,
                 pkce_verifier: pkceVerifier,
                 capabilities:
@@ -138,12 +140,27 @@ export function OAuthModal({ onClose }: OAuthModalProps) {
                             id='organization_uuid'
                             placeholder='请输入您的 Organization UUID'
                             value={organizationUuid}
-                            onChange={e => setOrganizationUuid(e.target.value)}
-                            className='font-mono'
+                            onChange={e => {
+                                const value = e.target.value
+                                setOrganizationUuid(value)
+                                // 验证 UUID 格式
+                                const formatted = formatUUID(value)
+                                if (formatted && !isValidUUID(formatted)) {
+                                    setUuidError('请输入有效的 UUID 格式')
+                                } else {
+                                    setUuidError('')
+                                }
+                            }}
+                            className={`font-mono ${uuidError && organizationUuid ? 'border-destructive' : ''}`}
                         />
-                        <p className='text-sm text-muted-foreground'>
-                            Claude.ai Cookie 值的 lastActiveOrg 字段即为 Organization UUID
-                        </p>
+                        {uuidError && organizationUuid ? (
+                            <div className='flex items-center gap-1 text-sm text-destructive'>
+                                <AlertCircle className='h-3 w-3' />
+                                <span>{uuidError}</span>
+                            </div>
+                        ) : (
+                            <p className='text-sm text-muted-foreground'>可在 Claude.ai Cookie 中的 lastActiveOrg 字段找到</p>
+                        )}
                     </div>
 
                     <div className='space-y-2'>
@@ -205,7 +222,10 @@ export function OAuthModal({ onClose }: OAuthModalProps) {
                 取消
             </Button>
             {step === 'input' ? (
-                <Button onClick={handleGenerateUrl} disabled={loading || !organizationUuid.trim()}>
+                <Button
+                    onClick={handleGenerateUrl}
+                    disabled={loading || !organizationUuid.trim() || !isValidUUID(formatUUID(organizationUuid))}
+                >
                     {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                     {loading ? (
                         '生成中...'

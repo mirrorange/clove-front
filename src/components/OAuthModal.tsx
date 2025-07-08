@@ -141,7 +141,9 @@ export function OAuthModal({ onClose }: OAuthModalProps) {
                             onChange={e => setOrganizationUuid(e.target.value)}
                             className='font-mono'
                         />
-                        <p className='text-sm text-muted-foreground'>您可以在 Claude.ai 设置中找到您的 Organization UUID</p>
+                        <p className='text-sm text-muted-foreground'>
+                            Claude.ai Cookie 值的 lastActiveOrg 字段即为 Organization UUID
+                        </p>
                     </div>
 
                     <div className='space-y-2'>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Key, RefreshCw, Sliders, Globe, Shield, Check, AlertCircle, Loader2, Trash2 } from 'lucide-react'
+import { Key, RefreshCw, Sliders, Globe, Shield, Check, AlertCircle, Loader2, Trash2, Copy, Eye, EyeOff } from 'lucide-react'
 import type { SettingsRead, SettingsUpdate } from '../api/types'
 import { settingsApi } from '../api/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,6 +23,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { toast } from 'sonner'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export function Settings() {
     const [settings, setSettings] = useState<SettingsRead | null>(null)
@@ -31,6 +33,9 @@ export function Settings() {
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
     const [newApiKey, setNewApiKey] = useState('')
     const [newAdminKey, setNewAdminKey] = useState('')
+    const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set())
+    const [copiedKeys, setCopiedKeys] = useState<Set<string>>(new Set())
+    const isMobile = useIsMobile()
 
     const loadSettings = async () => {
         try {
@@ -157,6 +162,36 @@ export function Settings() {
         }
     }
 
+    const toggleKeyVisibility = (key: string) => {
+        setVisibleKeys(prev => {
+            const newSet = new Set(prev)
+            if (newSet.has(key)) {
+                newSet.delete(key)
+            } else {
+                newSet.add(key)
+            }
+            return newSet
+        })
+    }
+
+    const copyKey = async (key: string) => {
+        try {
+            await navigator.clipboard.writeText(key)
+            toast.success('密钥已复制到剪贴板')
+
+            setCopiedKeys(prev => new Set(prev).add(key))
+            setTimeout(() => {
+                setCopiedKeys(prev => {
+                    const newSet = new Set(prev)
+                    newSet.delete(key)
+                    return newSet
+                })
+            }, 2000)
+        } catch (error) {
+            toast.error('复制失败，请手动复制')
+        }
+    }
+
     if (loading || !settings) {
         return (
             <div className='space-y-6'>
@@ -226,29 +261,66 @@ export function Settings() {
                     ) : (
                         <div className='space-y-2'>
                             {settings.api_keys.map((key, index) => (
-                                <div key={index} className='flex items-center gap-2 p-3 bg-muted rounded-lg'>
-                                    <code className='flex-1 text-sm font-mono'>{key}</code>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant='ghost' size='sm' className='text-destructive'>
-                                                <Trash2 className='h-4 w-4' />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>确定删除此密钥？</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    此操作无法撤销。删除后使用此密钥的应用将无法访问 API。
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>取消</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleRemoveApiKey(key)}>
-                                                    删除
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                                <div
+                                    key={index}
+                                    className='flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-border/50 hover:bg-muted/70 transition-colors'
+                                >
+                                    <code className='flex-1 text-sm font-mono select-none break-all'>
+                                        {visibleKeys.has(key) ? key : isMobile ? '*'.repeat(20) : '*'.repeat(32)}
+                                    </code>
+                                    <div className='flex items-center gap-1 flex-shrink-0'>
+                                        <Button
+                                            variant='ghost'
+                                            size='sm'
+                                            onClick={() => toggleKeyVisibility(key)}
+                                            className='h-8 w-8 p-0'
+                                            title={visibleKeys.has(key) ? '隐藏密钥' : '显示密钥'}
+                                        >
+                                            {visibleKeys.has(key) ? (
+                                                <EyeOff className='h-4 w-4' />
+                                            ) : (
+                                                <Eye className='h-4 w-4' />
+                                            )}
+                                        </Button>
+                                        <Button
+                                            variant='ghost'
+                                            size='sm'
+                                            onClick={() => copyKey(key)}
+                                            className='h-8 w-8 p-0'
+                                            title='复制密钥'
+                                        >
+                                            {copiedKeys.has(key) ? (
+                                                <Check className='h-4 w-4 text-green-500' />
+                                            ) : (
+                                                <Copy className='h-4 w-4' />
+                                            )}
+                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    variant='ghost'
+                                                    size='sm'
+                                                    className='h-8 w-8 p-0 text-destructive hover:text-destructive'
+                                                >
+                                                    <Trash2 className='h-4 w-4' />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>确定删除此密钥？</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        此操作无法撤销。删除后使用此密钥的应用将无法访问 API。
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>取消</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleRemoveApiKey(key)}>
+                                                        删除
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -258,20 +330,22 @@ export function Settings() {
 
                     <div className='space-y-2'>
                         <Label htmlFor='new-api-key'>添加新 API 密钥</Label>
-                        <div className='flex gap-2'>
+                        <div className='flex flex-wrap gap-2'>
                             <Input
                                 id='new-api-key'
                                 value={newApiKey}
                                 onChange={e => setNewApiKey(e.target.value)}
                                 placeholder='输入或生成新密钥'
-                                className='font-mono'
+                                className='font-mono flex-1 min-w-0'
                             />
-                            <Button variant='outline' size='icon' onClick={() => generateNewKey('api')} title='生成新密钥'>
-                                <RefreshCw className='h-4 w-4' />
-                            </Button>
-                            <Button onClick={handleAddApiKey} disabled={!newApiKey}>
-                                添加
-                            </Button>
+                            <div className='flex gap-2'>
+                                <Button variant='outline' size='icon' onClick={() => generateNewKey('api')} title='生成新密钥'>
+                                    <RefreshCw className='h-4 w-4' />
+                                </Button>
+                                <Button onClick={handleAddApiKey} disabled={!newApiKey}>
+                                    添加
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
@@ -294,29 +368,66 @@ export function Settings() {
                     ) : (
                         <div className='space-y-2'>
                             {settings.admin_api_keys.map((key, index) => (
-                                <div key={index} className='flex items-center gap-2 p-3 bg-muted rounded-lg'>
-                                    <code className='flex-1 text-sm font-mono'>{key}</code>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant='ghost' size='sm' className='text-destructive'>
-                                                <Trash2 className='h-4 w-4' />
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>确定删除此密钥？</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    此操作无法撤销。删除后将无法使用此密钥访问管理面板。
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>取消</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleRemoveAdminKey(key)}>
-                                                    删除
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                                <div
+                                    key={index}
+                                    className='flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-border/50 hover:bg-muted/70 transition-colors'
+                                >
+                                    <code className='flex-1 text-sm font-mono select-none break-all'>
+                                        {visibleKeys.has(key) ? key : isMobile ? '*'.repeat(20) : '*'.repeat(32)}
+                                    </code>
+                                    <div className='flex items-center gap-1 flex-shrink-0'>
+                                        <Button
+                                            variant='ghost'
+                                            size='sm'
+                                            onClick={() => toggleKeyVisibility(key)}
+                                            className='h-8 w-8 p-0'
+                                            title={visibleKeys.has(key) ? '隐藏密钥' : '显示密钥'}
+                                        >
+                                            {visibleKeys.has(key) ? (
+                                                <EyeOff className='h-4 w-4' />
+                                            ) : (
+                                                <Eye className='h-4 w-4' />
+                                            )}
+                                        </Button>
+                                        <Button
+                                            variant='ghost'
+                                            size='sm'
+                                            onClick={() => copyKey(key)}
+                                            className='h-8 w-8 p-0'
+                                            title='复制密钥'
+                                        >
+                                            {copiedKeys.has(key) ? (
+                                                <Check className='h-4 w-4 text-green-500' />
+                                            ) : (
+                                                <Copy className='h-4 w-4' />
+                                            )}
+                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    variant='ghost'
+                                                    size='sm'
+                                                    className='h-8 w-8 p-0 text-destructive hover:text-destructive'
+                                                >
+                                                    <Trash2 className='h-4 w-4' />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>确定删除此密钥？</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        此操作无法撤销。删除后将无法使用此密钥访问管理面板。
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>取消</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleRemoveAdminKey(key)}>
+                                                        删除
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -326,20 +437,27 @@ export function Settings() {
 
                     <div className='space-y-2'>
                         <Label htmlFor='new-admin-key'>添加新管理员密钥</Label>
-                        <div className='flex gap-2'>
+                        <div className='flex flex-wrap gap-2'>
                             <Input
                                 id='new-admin-key'
                                 value={newAdminKey}
                                 onChange={e => setNewAdminKey(e.target.value)}
                                 placeholder='输入或生成新密钥'
-                                className='font-mono'
+                                className='font-mono flex-1 min-w-0'
                             />
-                            <Button variant='outline' size='icon' onClick={() => generateNewKey('admin')} title='生成新密钥'>
-                                <RefreshCw className='h-4 w-4' />
-                            </Button>
-                            <Button onClick={handleAddAdminKey} disabled={!newAdminKey}>
-                                添加
-                            </Button>
+                            <div className='flex gap-2'>
+                                <Button
+                                    variant='outline'
+                                    size='icon'
+                                    onClick={() => generateNewKey('admin')}
+                                    title='生成新密钥'
+                                >
+                                    <RefreshCw className='h-4 w-4' />
+                                </Button>
+                                <Button onClick={handleAddAdminKey} disabled={!newAdminKey}>
+                                    添加
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </CardContent>

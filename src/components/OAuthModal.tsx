@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { isValidUUID, formatUUID } from '@/utils/validators'
+import { cn } from '@/lib/utils'
 
 interface OAuthModalProps {
     onClose: () => void
@@ -123,7 +124,7 @@ export function OAuthModal({ onClose }: OAuthModalProps) {
 
     const formContent = (
         <>
-            <Alert>
+            <Alert className={cn(isMobile && 'mb-4')}>
                 <Info className='h-4 w-4' />
                 <AlertDescription>
                     推荐使用 Cookie 添加账户，Clove 可以自动完成认证。OAuth 登录仅作为备选方案。

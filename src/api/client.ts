@@ -29,6 +29,15 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
     response => response,
     error => {
+        // 处理登录失效
+        if (error.response?.data?.detail?.code === 401011) {
+            localStorage.removeItem('adminKey')
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login'
+            }
+            return Promise.reject(error)
+        }
+
         // 尝试获取错误响应中的 detail.message
         const errorMessage = error.response?.data?.detail?.message || '发生未知错误'
 

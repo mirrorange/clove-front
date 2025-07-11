@@ -187,7 +187,7 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
                         placeholder='粘贴您的 Claude Cookie...'
                         value={formData.cookie_value}
                         onChange={e => setFormData({ ...formData, cookie_value: e.target.value })}
-                        className='min-h-[100px] font-mono text-sm'
+                        className='min-h-[100px] font-mono text-sm break-all'
                         required
                     />
                 </div>

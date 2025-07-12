@@ -12,11 +12,13 @@ import {
     Users,
     ChevronRight,
     KeyRound,
+    FileText,
 } from 'lucide-react'
 import type { AccountResponse } from '../api/types'
 import { accountsApi } from '../api/client'
 import { AccountModal } from '../components/AccountModal'
 import { OAuthModal } from '../components/OAuthModal'
+import { BatchCookieModal } from '../components/BatchCookieModal'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -41,6 +43,7 @@ export function Accounts() {
     const [loading, setLoading] = useState(true)
     const [modalOpen, setModalOpen] = useState(false)
     const [oauthModalOpen, setOauthModalOpen] = useState(false)
+    const [batchModalOpen, setBatchModalOpen] = useState(false)
     const [editingAccount, setEditingAccount] = useState<AccountResponse | null>(null)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [accountToDelete, setAccountToDelete] = useState<string | null>(null)
@@ -94,6 +97,11 @@ export function Accounts() {
 
     const handleOAuthModalClose = () => {
         setOauthModalOpen(false)
+        loadAccounts()
+    }
+
+    const handleBatchModalClose = () => {
+        setBatchModalOpen(false)
         loadAccounts()
     }
 
@@ -369,6 +377,10 @@ export function Accounts() {
                         <KeyRound className='mr-2 h-4 w-4' />
                         OAuth 登录
                     </Button>
+                    <Button onClick={() => setBatchModalOpen(true)} variant='outline' className='w-full sm:w-auto'>
+                        <FileText className='mr-2 h-4 w-4' />
+                        批量添加
+                    </Button>
                     <Button onClick={handleAdd} className='w-full sm:w-auto'>
                         <Plus className='mr-2 h-4 w-4' />
                         添加 Cookie
@@ -388,6 +400,10 @@ export function Accounts() {
                             <Button onClick={() => setOauthModalOpen(true)} variant='outline'>
                                 <KeyRound className='mr-2 h-4 w-4' />
                                 OAuth 登录
+                            </Button>
+                            <Button onClick={() => setBatchModalOpen(true)} variant='outline'>
+                                <FileText className='mr-2 h-4 w-4' />
+                                批量添加
                             </Button>
                             <Button onClick={handleAdd}>
                                 <Plus className='mr-2 h-4 w-4' />
@@ -498,6 +514,7 @@ export function Accounts() {
 
             {modalOpen && <AccountModal account={editingAccount} onClose={handleModalClose} />}
             {oauthModalOpen && <OAuthModal onClose={handleOAuthModalClose} />}
+            {batchModalOpen && <BatchCookieModal onClose={handleBatchModalClose} />}
         </div>
     )
 }
